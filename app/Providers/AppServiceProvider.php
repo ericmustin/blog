@@ -24,5 +24,18 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $logger = \Log::getMonolog();
+        $logger->pushProcessor(function ($record) {
+              $span = \DDTrace\GlobalTracer::get()->getActiveSpan();
+              if (null === $span) {
+                  return $record;
+              }
+              $record['message'] .= sprintf(
+                  ' [dd.trace_id=%d dd.span_id=%d]',
+                  $span->getTraceId(),
+                  $span->getSpanId()
+              );
+              return $record;
+          });
     }
 }
